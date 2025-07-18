@@ -22,10 +22,10 @@ Il circuito deve essere assemblato utilizzando **Arduino Uno R3** e includere i 
 |------------------------------|--------------------------------------------------------------------------|
 | **Sensore di Temperatura TMP36** | Misura con precisione la temperatura interna della camera                |
 | **Sensore di Gas MQ-3**          | Simula il monitoraggio dell’etanolo (sottoprodotto della fermentazione)  |
-| **Display LCD 16x2 con I2C**     | Visualizza lo stato del sistema, dati sensoriali e impostazioni          |
+| **Display LCD 16x2 I2C**     | Visualizza lo stato del sistema, dati sensoriali e impostazioni          |
 | **Potenziometro**                | Permette di impostare dinamicamente il setpoint di temperatura           |
 | **Pulsante di Navigazione**      | Cicla tra le schermate informative sul display                           |
-| **Relè a 1 Canale**              | Controlla un elemento riscaldante (motore DC o resistenza)               |
+| **Transistor**              | Controlla il moto (elemento riscaldante)               |
 | **LED Bicolore (o rosso/verde)** | Fornisce un'indicazione visiva immediata dello stato operativo           |
 | **Pulsante di Arresto d’Emergenza** | Ferma il sistema in caso di evento critico tramite interrupt             |
 

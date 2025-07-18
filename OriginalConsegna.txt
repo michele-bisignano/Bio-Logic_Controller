@@ -67,6 +67,8 @@ Navigation Button: To cycle through the different information screens displayed 
 
 Bi-color LED (or one Red and one Green LED): To provide an immediate visual indication of the system's operational status.
 
+in case of emergency a siren is also activated.
+
 Emergency Stop Button: A dedicated button for handling critical events.
 
 Software Architecture and Functional Requirements:
