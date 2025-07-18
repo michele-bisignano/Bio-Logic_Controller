@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/FortAwesome/Font-Awesome/6.x/svgs/solid/microscope.svg" width="80" />
   <h1>Bio-Logic Controller</h1>
   <p>
     <strong>A Precision Fermentation Chamber Controller with a Predictive, Object-Oriented Core.</strong>
