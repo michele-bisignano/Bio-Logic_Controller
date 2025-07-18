@@ -1,0 +1,57 @@
+# --------------------
+# Visual Studio files
+# --------------------
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.VC.db
+*.VC.VC.opendb
+
+# Build output
+Debug/
+Release/
+x64/
+ipch/
+*.obj
+*.exe
+*.dll
+*.pdb
+*.ilk
+*.log
+
+# Arduino build files
+*.hex
+*.elf
+*.eep
+*.bin
+*.d
+*.o
+*.a
+
+# Temporary or backup files
+*.tmp
+*.bak
+*.swp
+*.swn
+*.swo
+
+# Arduino sketch build cache (Visual Micro)
+_*.ino.cpp
+_*.ino.d
+_*.ino.o
+
+# Arduino libraries (optional: ignore if using external libs)
+libraries/*/
+!libraries/**.h
+!libraries/**.cpp
+!libraries/**/README*
+
+# Board and core packages (if downloaded locally)
+packages/
+hardware/
+
+# Others (OS-specific)
+.DS_Store
+Thumbs.db
