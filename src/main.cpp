@@ -14,7 +14,7 @@
 #include "controllers/ActuatorController.h"
 #include "sensors/SensorManager.h"
 #include "input/DebouncedButton.h"
-
+#include "display/DisplayManager.h"
 
 //  PIN AND COSTANT DEFINITIONS
 
@@ -26,24 +26,26 @@ constexpr byte NAVIGATION_BUTTON_PIN = 11; // Pin for the navigation button
 constexpr byte RED_LED_PIN = 12; // Pin for the red LED (indicates low level emergency)
 constexpr byte PIEZO_PIN = 13; // Pin for the piezo buzzer (indicates high level emergency)
 
-
 // ANALOG PINS DEFINITION
 constexpr byte TEMPERATURE_SENSOR_PIN = A0; // Pin for the temperature sensor
 constexpr byte GAS_SENSOR_PIN = A2; // Pin for the gas sensor
 constexpr byte POTENTIOMETER_PIN = A3; // Pin for the potentiometer
-constexpr byte SDA_PIN = A4; // Pin for the I2C SDA line
-constexpr byte SCL_PIN = A5; // Pin for the I2C SCL line
+
+// I2C ADDRESS
+constexpr byte I2C_ADDRESS= 0x27; 
 
 // OBJECT DEFINITIONS
 ActuatorController actuatorController(TRANSISTOR_PIN, GREEN_LED_PIN, RED_LED_PIN, PIEZO_PIN);
 SensorManager sensorManager(TEMPERATURE_SENSOR_PIN, GAS_SENSOR_PIN, POTENTIOMETER_PIN);
 DebouncedButton navigationButton(NAVIGATION_BUTTON_PIN);
+DisplayManager lcd(I2C_ADDRESS);
 
 void setup() {
   Serial.begin(9600);
   actuatorController.begin();
   sensorManager.begin();
   navigationButton.begin();
+  lcd.begin();
 }
 
 void loop() {
