@@ -20,7 +20,7 @@ Potenziometro: Per permettere all'utente di impostare dinamicamente la temperatu
 
 Pulsante di Navigazione: Per ciclare tra le diverse schermate informative visualizzate sul display.
 
-Relè a 1 Canale: Collegato a un elemento riscaldante (simulato da un motore DC o una resistenza di potenza) per controllare attivamente la temperatura.
+Transistor: Collegato a un elemento riscaldante (simulato da un motore DC o una resistenza di potenza) per controllare attivamente la temperatura.
 
 LED Bicolore (o un LED Rosso e uno Verde): Per fornire un'indicazione visiva immediata dello stato operativo del sistema.
 
@@ -28,7 +28,7 @@ Pulsante di Arresto d'Emergenza: Un pulsante dedicato per la gestione di eventi 
 
 Architettura Software e Requisiti Funzionali:
 
-Struttura a Classi (OOP): Il firmware deve essere obbligatoriamente progettato seguendo un'architettura a Classi, separando le responsabilità in file .h e .cpp distinti. Dovranno essere create almeno le seguenti classi: SensorManager (per la gestione di tutte le letture dei sensori), ActuatorController (per il controllo del relè e del LED), DisplayManager (per ogni interazione con l'LCD), DebouncedButton (una classe riutilizzabile per la gestione del pulsante di navigazione) e SystemState (che contiene la logica principale e la macchina a stati).
+Struttura a Classi (OOP): Il firmware deve essere obbligatoriamente progettato seguendo un'architettura a Classi, separando le responsabilità in file .h e .cpp distinti. Dovranno essere create almeno le seguenti classi: SensorManager (per la gestione di tutte le letture dei sensori), ActuatorController (per il controllo del transistor e del LED), DisplayManager (per ogni interazione con l'LCD), DebouncedButton (una classe riutilizzabile per la gestione del pulsante di navigazione) e SystemState (che contiene la logica principale e la macchina a stati).
 
 Gestione degli Input con Debouncing: Il pulsante di navigazione deve essere gestito tramite una logica di debouncing software per prevenire letture multiple e indesiderate, garantendo che ogni pressione venga registrata una sola volta in modo affidabile. La classe DebouncedButton deve implementare questa logica utilizzando la funzione millis().
 
@@ -67,13 +67,20 @@ Navigation Button: To cycle through the different information screens displayed 
 
 Bi-color LED (or one Red and one Green LED): To provide an immediate visual indication of the system's operational status.
 
+There are 2 level of emergency.
+Low level emergency: the red light is activated.
+High level emergency: the siren is activated.
+(to decide when is low and when is high)
+
 in case of emergency a siren is also activated.
 
 Emergency Stop Button: A dedicated button for handling critical events.
 
 Software Architecture and Functional Requirements:
 
-Object-Oriented (OOP) Structure: The firmware must be designed following a mandatory Object-Oriented architecture, separating responsibilities into distinct .h and .cpp files. At a minimum, the following classes must be created: SensorManager (for handling all sensor readings), ActuatorController (for controlling the relay and LED), DisplayManager (for all interactions with the LCD), DebouncedButton (a reusable class for managing the navigation button), and SystemState (which contains the main logic and the state machine).
+Object-Oriented (OOP) Structure: The firmware must be designed following a mandatory Object-Oriented architecture, separating responsibilities into distinct .h and .cpp files. At a minimum, the following classes must be created: SensorManager (for handling all sensor readings), ActuatorController (for controlling the transistor and LED), DisplayManager (for all interactions with the LCD), DebouncedButton (a reusable class for managing the navigation button), and SystemState (which contains the main logic and the state machine).
+
+
 
 Input Management with Debouncing: The navigation button must be managed using software debouncing logic to prevent multiple, unwanted readings, ensuring that each press is reliably registered only once. The DebouncedButton class must implement this logic using the millis() function.
 

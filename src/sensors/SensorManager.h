@@ -28,7 +28,7 @@ public:
      * @brief Reads the temperature sensor and converts the value to Celsius.
      * @return The current temperature in degrees Celsius (float).
      */
-    float getTemperatureC();
+    float getTemperature();
 
     /**
      * @brief Reads the raw analog value from the gas sensor.
@@ -44,7 +44,7 @@ public:
     float getSetpoint();
 
 private:
-    byte _tempPin;
-    byte _gasPin;
-    byte _potPin;
+    byte _tempPin; // Pin for the temperature
+    byte _gasPin;  // Pin for the gas sensor
+    byte _potPin;  // Pin for the potentiometer
 };
