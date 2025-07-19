@@ -18,10 +18,11 @@
 // DIGITAL PINS DEFINITION
 constexpr int TRANSISTOR_PIN = 2; // Pin for the transistor which controls the motor
 constexpr int EMERGENCY_BUTTON_PIN = 3; // Pin for the emergency button
-constexpr int PIEZO_PIN = 10; // Pin for the piezo buzzer (indicates high level emergency)
-constexpr int GREEN_LED_PIN = 11; // Pin for the green LED (indicates normal operation)
-constexpr int NAVIGATION_BUTTON_PIN = 12; // Pin for the navigation button
-constexpr int RED_LED_PIN = 13; // Pin for the red LED (indicates low level emergency)
+constexpr int GREEN_LED_PIN = 10; // Pin for the green LED (indicates normal operation)
+constexpr int NAVIGATION_BUTTON_PIN = 11; // Pin for the navigation button
+constexpr int RED_LED_PIN = 12; // Pin for the red LED (indicates low level emergency)
+constexpr int PIEZO_PIN = 13; // Pin for the piezo buzzer (indicates high level emergency)
+
 
 // ANALOG PINS DEFINITION
 constexpr int TEMPERATURE_SENSOR_PIN = A0; // Pin for the temperature sensor

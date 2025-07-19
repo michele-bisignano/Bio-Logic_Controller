@@ -1,6 +1,4 @@
-Of course. Here is the file tree structure in English, with the comments neatly aligned for better readability.
-
-Generated text
+'''
 src/                                # Contains all source code
 ├── main.cpp # Main entry point, coordinates all
 ├── core/                           # Contains the core logic
@@ -18,3 +16,4 @@ src/                                # Contains all source code
 └── sensors/                        # Manages sensor readings
     ├── SensorManager.h           # Defines sensor management
     └── SensorManager.cpp         # Implements sensor management
+'''

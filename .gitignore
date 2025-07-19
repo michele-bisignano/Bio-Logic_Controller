@@ -2,6 +2,8 @@
 # Visual Studio files
 # --------------------
 .vs/
+.vscode/
+.pio/
 *.user
 *.suo
 *.userosscache
