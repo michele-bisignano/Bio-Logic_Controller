@@ -13,6 +13,7 @@
 #include <Arduino.h>
 #include "controllers/ActuatorController.h"
 #include "sensors/SensorManager.h"
+#include "input/DebouncedButton.h"
 
 
 //  PIN AND COSTANT DEFINITIONS
@@ -36,13 +37,16 @@ constexpr byte SCL_PIN = A5; // Pin for the I2C SCL line
 // OBJECT DEFINITIONS
 ActuatorController actuatorController(TRANSISTOR_PIN, GREEN_LED_PIN, RED_LED_PIN, PIEZO_PIN);
 SensorManager sensorManager(TEMPERATURE_SENSOR_PIN, GAS_SENSOR_PIN, POTENTIOMETER_PIN);
-
+DebouncedButton navigationButton(NAVIGATION_BUTTON_PIN);
 
 void setup() {
   Serial.begin(9600);
   actuatorController.begin();
+  sensorManager.begin();
+  navigationButton.begin();
 }
 
 void loop() {
+  actuatorController.update();
 
 }

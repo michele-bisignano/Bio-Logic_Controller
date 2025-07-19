@@ -32,7 +32,7 @@ float SensorManager::getSetpoint()
 
         // Read the physical value and update our cache
         int potVal = analogRead(_potPin);
-        _lastSetpoint = map(potVal, 0, 1023, 20, 40);
+        _lastSetpoint = map(potVal, 0, 1023, MIN_SETTABLE_TEMPERATURE, MAX_SETTABLE_TEMPERATURE);
     }
 
     // ALWAYS return the cached value.
