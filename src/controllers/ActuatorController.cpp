@@ -1,11 +1,5 @@
 #include "ActuatorController.h"
 
-// Constants are implementation details, so they belong in the .cpp file.
-constexpr int SIREN_MIN_FREQUENCY = 500;
-constexpr int SIREN_MAX_FREQUENCY = 1500;
-constexpr int SIREN_FREQUENCY_STEP = 25;
-constexpr int SIREN_UPDATE_INTERVAL_MS = 15;
-
 ActuatorController::ActuatorController(byte transistorPin, byte greenLedPin, byte redLedPin, byte piezoPin)
     : _transistorPin(transistorPin),
       _greenLedPin(greenLedPin),

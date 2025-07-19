@@ -6,6 +6,9 @@
 #include "DisplayManager.h"
 */
 
+constexpr int LOW_EMERGENCY_GAS_THRESHOLD = 600;
+constexpr int HIGH_EMERGENCY_GAS_THRESHOLD = 750;
+
 /**
  * @brief Defines the possible operational states of the system.
  */
