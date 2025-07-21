@@ -15,6 +15,7 @@
 #include "sensors/SensorManager.h"
 #include "input/DebouncedButton.h"
 #include "display/DisplayManager.h"
+#include "core/SystemState.h"
 
 //  PIN AND COSTANT DEFINITIONS
 
@@ -39,6 +40,18 @@ ActuatorController actuatorController(TRANSISTOR_PIN, GREEN_LED_PIN, RED_LED_PIN
 SensorManager sensorManager(TEMPERATURE_SENSOR_PIN, GAS_SENSOR_PIN, POTENTIOMETER_PIN);
 DebouncedButton navigationButton(NAVIGATION_BUTTON_PIN);
 DisplayManager lcd(I2C_ADDRESS);
+SystemState systemState(sensorManager, actuatorController, lcd);
+
+
+/**
+ * @brief This function is called by hardware when the emergency stop button is pressed.
+ * It must be extremely fast. It delegates the work to the SystemState object.
+ * The 'volatile' keyword is not strictly needed here as we are calling a method,
+ * but it's good practice to be aware of it for ISRs that modify global flags.
+ */
+void emergencyStopISR() {
+    systemState.triggerEmergencyStop();
+}
 
 void setup() {
   Serial.begin(9600);
@@ -46,9 +59,13 @@ void setup() {
   sensorManager.begin();
   navigationButton.begin();
   lcd.begin();
+  systemState.begin();
+  pinMode(EMERGENCY_BUTTON_PIN, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(EMERGENCY_BUTTON_PIN),  emergencyStopISR, FALLING);
 }
 
 void loop() {
   actuatorController.update();
-
+  systemState.update();
 }
+

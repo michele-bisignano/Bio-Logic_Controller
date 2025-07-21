@@ -51,14 +51,5 @@ namespace States
      * @param state The state to convert.
      * @return A const String pointing to the string literal in read-only memory.
      */
-    const String toString(Type state){
-    switch (state) {
-        case States::Type::STANDBY:         return "STANDBY";
-        case States::Type::PREHEATING:      return "PREHEATING";
-        case States::Type::MAINTAINING:     return "MAINTAINING";
-        case States::Type::EMERGENCY_STOP:  return "EMERGENCY STOP";
-        default:                              throw "UNKNOWN";
-    }
-}
-
+    const String toString(Type state);
 }

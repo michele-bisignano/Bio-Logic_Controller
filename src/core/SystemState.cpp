@@ -1,55 +1,34 @@
 #include "SystemState.h"
-#include "StateType.h"
-#include <Arduino.h> // Required for the millis() function
+#include <Arduino.h>
 
-/** @brief ADC value from the MQ-3 sensor to trigger a low-level emergency (red light only).
- *  This value should be calibrated experimentally based on the sensor's response
- *  in clean air versus a low concentration of the target gas (e.g., ethanol). */
+// ======================================================================================
+// --- CONFIGURATION AND TUNING CONSTANTS ---
+// ======================================================================================
 const int LOW_EMERGENCY_GAS_THRESHOLD = 400;
-
-/** @brief ADC value from the MQ-3 sensor to trigger a high-level emergency (red light + siren).
- *  Represents a gas concentration considered critical. */
 const int HIGH_EMERGENCY_GAS_THRESHOLD = 700;
-
-/** @brief Hysteresis in degrees Celsius. Prevents rapid, unwanted state switching
- *  (e.g., between MAINTAINING and PREHEATING) when the temperature fluctuates near the setpoint. */
 const float TEMPERATURE_HYSTERESIS = 0.5;
-
-/** @brief Derivative threshold (degrees C / second) for predictive control.
- *  If the temperature drops faster than this rate, a heating pulse is triggered.
- *  A more negative value (e.g., -0.1) makes the system less sensitive, while a value
- *  closer to zero (e.g., -0.01) makes it more responsive. */
 const float PREDICTIVE_DERIVATIVE_THRESHOLD = -0.05;
-
-/** @brief Duration in milliseconds of a single predictive heating pulse.
- *  A longer value provides more energy but may cause temperature overshoot.
- *  A shorter value is more gentle. */
 const unsigned long HEATING_PULSE_DURATION_MS = 2000;
-
-/** @brief Interval in seconds for recalculating the temperature derivative.
- *  A longer interval averages out fluctuations, making the calculation more stable
- *  but less responsive to rapid changes. */
+const unsigned long DISPLAY_UPDATE_INTERVAL_MS = 1500;
 const float DERIVATIVE_CALCULATION_INTERVAL_S = 2.0;
 
 SystemState::SystemState(SensorManager &sm, ActuatorController &ac, DisplayManager &dm)
     : sensorManager(sm), actuatorController(ac), displayManager(dm),
-      currentState(States::Type::STANDBY), _lastUpdateTime(0), _lastTemperature(0.0),
+      _currentState(States::Type::STANDBY), _lastUpdateTime(0), _lastTemperature(0.0),
       _temperatureDerivative(0.0), _heatingPulseStartTime(0) {}
 
-void SystemState::setup()
+void SystemState::begin()
 {
-    currentState = States::Type::STANDBY;
+    _currentState = States::Type::STANDBY;
     _lastUpdateTime = millis();
     _lastTemperature = sensorManager.getTemperature();
-    _setpoint = sensorManager.getSetpoint();
-    displayManager.displayStatus(States::toString(currentState), _lastTemperature, _setpoint, _gasValue);
-    delay(1500); // Short pause to allow the boot message to be read.
 }
 
-void SystemState::loop()
+void SystemState::update()
 {
-    // 2. Process logic based on the current state.
-    switch (currentState)
+    checkAndHandleEmergencies();
+
+    switch (_currentState)
     {
     case States::Type::STANDBY:
         handleStandby();
@@ -63,139 +42,179 @@ void SystemState::loop()
     case States::Type::EMERGENCY_STOP:
         handleEmergencyStop();
         break;
+        // No default case needed here, as checkAndHandleEmergencies covers all states,
+        // and an invalid state in the variable itself would be a memory corruption issue.
     }
 }
 
 void SystemState::triggerEmergencyStop()
 {
-    // This function is atomic and fast, suitable for an ISR.
-    // It acts directly on actuators for an immediate response,
-    // bypassing the normal loop cycle.
+    // This ISR-callable method must be extremely fast.
     actuatorController.setStatusHeater(false);
     actuatorController.setSirenState(true);
     actuatorController.setStatusRedLED(true);
-    currentState = States::Type::EMERGENCY_STOP;
+    _currentState = States::Type::EMERGENCY_STOP;
 }
 
-// ======================================================================================
-// --- STATE HANDLER IMPLEMENTATIONS ---
-// ======================================================================================
+void SystemState::checkAndHandleEmergencies()
+{
+    // This check runs every cycle, regardless of the FSM state.
+    // It has priority over normal state operations for safety.
+    if (_currentState == States::Type::EMERGENCY_STOP)
+    {
+        return; // The hardware interrupt state is final.
+    }
+
+    _gasValue = sensorManager.getGasValue();
+
+    if (_gasValue >= HIGH_EMERGENCY_GAS_THRESHOLD)
+    {
+        actuatorController.setStatusGreenLED(false);
+        actuatorController.setStatusRedLED(true);
+        actuatorController.setSirenState(true);
+    }
+    else if (_gasValue >= LOW_EMERGENCY_GAS_THRESHOLD)
+    {
+        actuatorController.setStatusGreenLED(false);
+        actuatorController.setStatusRedLED(true);
+        actuatorController.setSirenState(false);
+    }
+    else
+    {
+        // If gas level is normal, ensure the siren is off.
+        // The control of the LED color is returned to the state handlers.
+        actuatorController.setSirenState(false);
+    }
+}
 
 void SystemState::handleStandby()
 {
-    // GOAL: Keep the system in a safe, low-power state while waiting for instructions.
-    // ACTIONS: All main actuators are off. The status LED is green.
     actuatorController.setStatusHeater(false);
-    actuatorController.setSirenState(false);
-    actuatorController.setStatusGreenLED(true);
 
-    float currentTemperature = sensorManager.getTemperature();
-    float setpoint = sensorManager.getSetpoint();
-    displayManager.displayStatus(States::toString(currentState), _lastTemperature, _setpoint, _gasValue);
-
-    // TRANSITION: Switch to PREHEATING if the setpoint is raised significantly
-    // above the current temperature. Hysteresis prevents spurious transitions.
-    if (setpoint > currentTemperature + TEMPERATURE_HYSTERESIS)
+    // The LED is green only if there is no gas emergency.
+    if (sensorManager.getGasValue() < LOW_EMERGENCY_GAS_THRESHOLD)
     {
-        currentState = States::Type::PREHEATING;
+        actuatorController.setStatusRedLED(false);
+        actuatorController.setStatusGreenLED(true);
+    }
+
+    _lastTemperature = sensorManager.getTemperature();
+    _setpoint = sensorManager.getSetpoint();
+    updateDisplay(States::toString(States::Type::STANDBY), _lastTemperature, _setpoint, _gasValue);
+
+    if (_setpoint > _lastTemperature + TEMPERATURE_HYSTERESIS)
+    {
+        _currentState = States::Type::PREHEATING;
     }
 }
 
 void SystemState::handlePreheating()
 {
-    // GOAL: Reach the setpoint temperature as quickly as possible.
-    // ACTIONS: The heater is on continuously. The status LED is red to indicate activity.
-    actuatorController.setStatusHeater(true);
-    actuatorController.setSirenState(false);
-    actuatorController.setStatusRedLED(true);
+    actuatorController.setStatusHeater(false);
+
+    // The LED is red for heating, but the gas emergency check can override this.
+    if (sensorManager.getGasValue() < LOW_EMERGENCY_GAS_THRESHOLD)
+    {
+        actuatorController.setStatusGreenLED(false);
+        actuatorController.setStatusRedLED(true);
+    }
 
     float currentTemperature = sensorManager.getTemperature();
     float setpoint = sensorManager.getSetpoint();
-    displayManager.displayStatus(States::toString(currentState), _lastTemperature, _setpoint, _gasValue);
+    updateDisplay(States::toString(States::Type::PREHEATING), currentTemperature, setpoint, _gasValue);
 
-    // TRANSITION: Switch to MAINTAINING as soon as the temperature reaches or exceeds the setpoint.
     if (currentTemperature >= setpoint)
     {
-        currentState = States::Type::MAINTAINING;
-        // Initialize variables for predictive control before entering the new state.
+        _currentState = States::Type::MAINTAINING;
         _lastUpdateTime = millis();
         _lastTemperature = currentTemperature;
-        actuatorController.setStatusHeater(false);
+        actuatorController.setStatusHeater(true);
     }
 }
 
 void SystemState::handleMaintaining()
 {
-    // GOAL: Maintain a stable temperature around the setpoint with high precision.
-    float currentTemperature = sensorManager.getTemperature();
-    float setpoint = sensorManager.getSetpoint();
-    int gasValue = sensorManager.getGasValue();
-
-    // --- 1. Gas Emergency Handling ---
-    // Continuously check gas levels and trigger the appropriate alarms.
-    if (gasValue >= HIGH_EMERGENCY_GAS_THRESHOLD)
-    {
-        actuatorController.setStatusRedLED(true);
-    }
-    else if (gasValue >= LOW_EMERGENCY_GAS_THRESHOLD)
+    // The LED is green for stable, but the gas emergency check can override this.
+    if (sensorManager.getGasValue() < LOW_EMERGENCY_GAS_THRESHOLD)
     {
         actuatorController.setStatusRedLED(false);
-    }
-    else
-    {
-        actuatorController.setStatusGreenLED(); // If no emergency, the LED is green.
+        actuatorController.setStatusGreenLED(true);
     }
 
-    // --- 2. Predictive Control Logic ---
+    // --- Predictive Control Logic ---
     unsigned long now = millis();
     if (_heatingPulseStartTime > 0)
     {
-        // If a pulse is already active, check if it has finished.
         if (now - _heatingPulseStartTime >= HEATING_PULSE_DURATION_MS)
         {
             actuatorController.setStatusHeater(false);
-            _heatingPulseStartTime = 0; // Reset the pulse timer.
+            _heatingPulseStartTime = 0;
         }
     }
     else
     {
-        // If no pulse is active, evaluate whether to start a new one.
         if (now - _lastUpdateTime >= (DERIVATIVE_CALCULATION_INTERVAL_S * 1000))
         {
             float dt_seconds = (now - _lastUpdateTime) / 1000.0f;
-            // Calculate derivative: (current_temp - last_temp) / elapsed_time
+            float currentTemperature = sensorManager.getTemperature();
             _temperatureDerivative = (currentTemperature - _lastTemperature) / dt_seconds;
 
             _lastUpdateTime = now;
             _lastTemperature = currentTemperature;
 
-            // Predictive decision: if temp is dropping too fast and we are below the setpoint,
-            // anticipate the heat loss with a pulse.
-            if (_temperatureDerivative < PREDICTIVE_DERIVATIVE_THRESHOLD && currentTemperature < setpoint)
+            if (_temperatureDerivative < PREDICTIVE_DERIVATIVE_THRESHOLD && currentTemperature < sensorManager.getSetpoint())
             {
                 actuatorController.setStatusHeater(true);
-                _heatingPulseStartTime = now; // Start the timer for the pulse duration.
+                _heatingPulseStartTime = now;
             }
         }
     }
 
-    // --- 3. Safety Fallback Transition ---
-    // If, despite the predictive logic, the temperature drops too much,
-    // return to the preheating state for a more aggressive recovery.
-    if (currentTemperature < setpoint - TEMPERATURE_HYSTERESIS)
+    // --- Fallback Safety Transition ---
+    if (sensorManager.getTemperature() < sensorManager.getSetpoint() - TEMPERATURE_HYSTERESIS)
     {
-        currentState = States::Type::PREHEATING;
-        return; // Exit to allow the next loop cycle to run the PREHEATING logic.
+        _currentState = States::Type::PREHEATING;
+        return;
     }
 
-    displayManager.displayStatus(States::toString(currentState), _lastTemperature, _setpoint, _gasValue);
+    updateDisplay(States::toString(States::Type::MAINTAINING), _lastTemperature, _setpoint, _gasValue);
 }
 
 void SystemState::handleEmergencyStop()
 {
-    // GOAL: Keep the system in a safe shutdown state until reset.
-    // ACTIONS: No active operations. Actuators were already disabled by
-    // triggerEmergencyStop(). The system just displays the error message.
-    displayManager.displayEmergency("High temp or gas");
-    // The only way out of this state is a hardware reset.
+    // This is a terminal state. Actuators were already handled by triggerEmergencyStop().
+    // We just keep displaying the emergency message.
+    displayManager.displayEmergency("High gas or temp");
+}
+
+/**
+ * @brief Updates the display with the current system status, only if changes are detected.
+ *
+ * @param state     A string representing the current FSM state (e.g., "STANDBY", "MAINTAINING").
+ * @param currentTemp The current temperature reading from the sensor.
+ * @param setpoint  The target temperature set by the user.
+ * @param gasValue  The latest gas sensor reading.
+ *
+ * @details This function compares the current values with the previously displayed values.
+ * If any parameter has changed, it updates the internal cached values and refreshes the display
+ * via the DisplayManager. If all values remain unchanged, the function returns immediately
+ * to avoid unnecessary updates and flickering on the display.
+ */
+void SystemState::updateDisplay(String state, float currentTemp, float setpoint, int gasValue)
+{
+    if (_previousTemperaturePrinted != currentTemp ||
+        _previousSetpointPrinted != setpoint ||
+        _previousGasValuePrinted != gasValue ||
+        _previousStatePrinted != state)
+    {
+        _previousTemperaturePrinted = currentTemp;
+        _previousSetpointPrinted = setpoint;
+        _previousGasValuePrinted = gasValue;
+        _previousStatePrinted = state;
+    }
+    else
+    {
+        return; // No change, skip display update
+    }
+    displayManager.displayStatus(state, currentTemp, setpoint, gasValue);
 }
