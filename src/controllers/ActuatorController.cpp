@@ -1,7 +1,7 @@
 #include "ActuatorController.h"
 
-ActuatorController::ActuatorController(byte transistorPin, byte greenLedPin, byte redLedPin, byte piezoPin)
-    : _transistorPin(transistorPin),
+ActuatorController::ActuatorController(byte heaterPin, byte greenLedPin, byte redLedPin, byte piezoPin)
+    : _heaterPin(heaterPin),
       _greenLedPin(greenLedPin),
       _redLedPin(redLedPin),
       _piezoPin(piezoPin),
@@ -14,7 +14,7 @@ ActuatorController::ActuatorController(byte transistorPin, byte greenLedPin, byt
 
 void ActuatorController::begin()
 {
-    pinMode(_transistorPin, OUTPUT);
+    pinMode(_heaterPin, OUTPUT);
     pinMode(_greenLedPin, OUTPUT);
     pinMode(_redLedPin, OUTPUT);
     pinMode(_piezoPin, OUTPUT);
@@ -82,5 +82,12 @@ void ActuatorController::updateSirenTone()
     }
 }
 
-void ActuatorController::setStatusGreen(bool active) { digitalWrite(_greenLedPin, active); }
-void ActuatorController::setStatusRed(bool active) { digitalWrite(_redLedPin, active); }
+void ActuatorController::setStatusHeater(bool activate) {
+  digitalWrite(_heaterPin, activate ? HIGH : LOW);
+}
+void ActuatorController::setStatusGreenLED(bool active) {
+    digitalWrite(_greenLedPin, active);
+}
+void ActuatorController::setStatusRedLED(bool active) {
+    digitalWrite(_redLedPin, active);
+}

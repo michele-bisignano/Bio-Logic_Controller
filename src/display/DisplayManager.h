@@ -65,7 +65,7 @@ public:
      * @param setpoint The target temperature set by the user.
      * @param gasValue The value from the gas sensor.
      */
-    void displayStatus(const String &state, float currentTemp, float setpoint, int gasValue);
+    void displayStatus(String state, float currentTemp, float setpoint, int gasValue);
 
     /**
      * @brief Displays a critical emergency message, overriding any other content.

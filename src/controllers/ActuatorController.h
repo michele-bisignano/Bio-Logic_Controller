@@ -18,12 +18,12 @@ class ActuatorController
 {
 public:
     /**
-     * @brief constexprructs the ActuatorController.
-     * @param transistorPin The digital pin connected to the transistor module.
+     * @brief contructor for the ActuatorController.
+     * @param heaterPin The digital pin connected to the heater.
      * @param greenLedPin The digital pin connected to the green LED.
      * @param redLedPin The digital pin connected to the red LED.
      */
-    ActuatorController(byte transistorPin, byte greenLedPin, byte redLedPin, byte piezoPin);
+    ActuatorController(byte heaterPin, byte greenLedPin, byte redLedPin, byte piezoPin);
 
     /**
      * @brief Initializes the pins for the actuators.
@@ -35,19 +35,20 @@ public:
      * @brief Turns the heating element on or off.
      * @param active Set to true to activate the heater, false to deactivate it.
      */
-    // void setHeater(bool active);
+    void setStatusHeater(bool active);
+
 
     /**
      * @brief Sets the state of the green LED.
      * @param active Set to true to turn on the green LED, false to turn it off.
      */
-    void setStatusGreen(bool active);
+    void setStatusGreenLED(bool active);
 
     /**
      * @brief Sets the state of the red LED.
      * @param active Set to true to turn on the red LED, false to turn it off.
      */
-    void setStatusRed(bool active);
+    void setStatusRedLED(bool active);
 
     /**
      * @brief Sets the state of the piezo buzzer.
@@ -65,7 +66,7 @@ public:
 
 
 private:
-    byte _transistorPin;
+    byte _heaterPin;
     byte _greenLedPin;
     byte _redLedPin;
     byte _piezoPin;

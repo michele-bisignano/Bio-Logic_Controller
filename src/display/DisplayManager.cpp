@@ -36,7 +36,7 @@ void DisplayManager::print(const String &line1, const String &line2)
     _lcd.print(line2);
 }
 
-void DisplayManager::displayStatus(const String &state, float currentTemp, float setpoint, int gasValue)
+void DisplayManager::displayStatus(String state, float currentTemp, float setpoint, int gasValue)
 {
     _lcd.clear();
 
