@@ -2,7 +2,8 @@
 src/
 ├── main.cpp
 ├── core/
-│   ├── States.h
+│   ├── StateType.cpp
+│   ├── StateType.h
 │   ├── SystemState.h
 │   └── SystemState.cpp
 ├── controllers/
@@ -11,9 +12,6 @@ src/
 ├── display/
 │   ├── DisplayManager.h
 │   └── DisplayManager.cpp
-├── input/
-│   ├── DebouncedButton.h
-│   └── DebouncedButton.cpp
 └── sensors/
     ├── SensorManager.h
     └── SensorManager.cpp

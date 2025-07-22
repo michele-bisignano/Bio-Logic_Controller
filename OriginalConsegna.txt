@@ -81,7 +81,6 @@ Software Architecture and Functional Requirements:
 Object-Oriented (OOP) Structure: The firmware must be designed following a mandatory Object-Oriented architecture, separating responsibilities into distinct .h and .cpp files. At a minimum, the following classes must be created: SensorManager (for handling all sensor readings), ActuatorController (for controlling the transistor and LED), DisplayManager (for all interactions with the LCD), DebouncedButton (a reusable class for managing the navigation button), and SystemState (which contains the main logic and the state machine).
 
 
-
 Input Management with Debouncing: The navigation button must be managed using software debouncing logic to prevent multiple, unwanted readings, ensuring that each press is reliably registered only once. The DebouncedButton class must implement this logic using the millis() function.
 
 Interrupt Handling: The Emergency Stop button must be connected to an external interrupt pin on the Arduino (pin 2 or 3). Pressing it must trigger an Interrupt Service Routine (ISR) that immediately stops all critical operations (specifically, deactivating the heating element) and puts the system into a safe state, regardless of the ongoing operation.

@@ -13,7 +13,6 @@
 #include <Arduino.h>
 #include "controllers/ActuatorController.h"
 #include "sensors/SensorManager.h"
-#include "input/DebouncedButton.h"
 #include "display/DisplayManager.h"
 #include "core/SystemState.h"
 
@@ -23,7 +22,7 @@
 constexpr byte TRANSISTOR_PIN = 2; // Pin for the transistor which controls the motor
 constexpr byte EMERGENCY_BUTTON_PIN = 3; // Pin for the emergency button
 constexpr byte GREEN_LED_PIN = 10; // Pin for the green LED (indicates normal operation)
-constexpr byte NAVIGATION_BUTTON_PIN = 11; // Pin for the navigation button
+constexpr byte ACKNOWLEDGE_BUTTON_PIN = 11; // Pin for the acknowledge button
 constexpr byte RED_LED_PIN = 12; // Pin for the red LED (indicates low level emergency)
 constexpr byte PIEZO_PIN = 13; // Pin for the piezo buzzer (indicates high level emergency)
 
@@ -38,7 +37,6 @@ constexpr byte I2C_ADDRESS= 0x27;
 // OBJECT DEFINITIONS
 ActuatorController actuatorController(TRANSISTOR_PIN, GREEN_LED_PIN, RED_LED_PIN, PIEZO_PIN);
 SensorManager sensorManager(TEMPERATURE_SENSOR_PIN, GAS_SENSOR_PIN, POTENTIOMETER_PIN);
-DebouncedButton navigationButton(NAVIGATION_BUTTON_PIN);
 DisplayManager lcd(I2C_ADDRESS);
 SystemState systemState(sensorManager, actuatorController, lcd);
 
@@ -57,7 +55,6 @@ void setup() {
   Serial.begin(9600);
   actuatorController.begin();
   sensorManager.begin();
-  navigationButton.begin();
   lcd.begin();
   systemState.begin();
   pinMode(EMERGENCY_BUTTON_PIN, INPUT_PULLUP);

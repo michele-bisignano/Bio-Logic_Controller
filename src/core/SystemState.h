@@ -4,92 +4,78 @@
 #include "../sensors/SensorManager.h"
 #include "../controllers/ActuatorController.h"
 #include "../display/DisplayManager.h"
-
 /**
  * @class SystemState
- * @brief The orchestrator class that acts as the "brain" of the control system.
+ * @brief Manages the main logic and state machine of the fermentation chamber.
  *
- * This class implements the Finite State Machine (FSM) logic and manages the
- * interactions between the various system modules (sensors, actuators, display).
- * Its purpose is to execute the main control loop, implement the predictive
- * control logic, and handle state transitions safely and reliably.
+ * This class is the core of the controller. It orchestrates all other components,
+ * implements the Finite State Machine (FSM), and handles emergency conditions.
  */
-class SystemState {
+class SystemState
+{
 public:
     /**
-     * @brief Constructor for the SystemState class.
-     * @param sm A reference to a SensorManager instance. Using a reference (&)
-     *           implements the Dependency Injection principle.
-     * @param ac A reference to an ActuatorController instance.
-     * @param dm A reference to a DisplayManager instance.
+     * @brief Constructs the SystemState manager.
+     * @param sm A reference to the SensorManager instance.
+     * @param ac A reference to the ActuatorController instance.
+     * @param dm A reference to the DisplayManager instance.
      */
-    SystemState(SensorManager& sm, ActuatorController& ac, DisplayManager& dm);
+    SystemState(SensorManager &sm, ActuatorController &ac, DisplayManager &dm);
 
     /**
-     * @brief Initializes the system state and its dependent components.
-     * Should be called once within the main `setup()` function.
+     * @brief Initializes the system state and dependent components.
      */
     void begin();
 
     /**
-     * @brief Executes the main logic cycle for the system.
-     * This method must be called repeatedly within the main `loop()` function.
+     * @brief The main update loop for the system logic.
      */
     void update();
 
     /**
-     * @brief Triggers the emergency stop state via an ISR.
-     * This method must be extremely fast and non-blocking. It immediately deactivates
-     * critical actuators and forces a transition to the EMERGENCY_STOP state.
+     * @brief An ISR-safe method to trigger the hardware emergency stop.
      */
     void triggerEmergencyStop();
 
 private:
-    // --- Hardware Module References (Dependency Injection) ---
-    SensorManager& sensorManager;
-    ActuatorController& actuatorController;
-    DisplayManager& displayManager;
+    // --- Component References ---
+    SensorManager &sensorManager;
+    ActuatorController &actuatorController;
+    DisplayManager &displayManager;
+    // The DebouncedButton reference has been removed.
 
-    // --- Internal State ---
-    /** @brief Holds the current state of the Finite State Machine. */
+    // --- State Machine ---
     States::Type _currentState;
+    States::Type _stateBeforeEmergency;
+    
 
-    // --- State and Emergency Handlers ---
+    // --- State Handlers (Private Methods) ---
     void handleStandby();
     void handlePreheating();
     void handleMaintaining();
     void handleEmergencyStop();
-    
-    /**
-     * @brief Checks for non-interrupt driven emergencies like gas leaks.
-     * This method runs on every loop cycle to ensure constant monitoring,
-     * overriding normal actuator states if an emergency is detected.
-     */
-    void checkAndHandleEmergencies();
 
-    /**
-     * @brief Updates the display with the current system status.
-     * This method is called periodically to refresh the display content
-     * without causing flickering or excessive I2C traffic.
-     */
+    // --- Display Management ---
     void updateDisplay(String state, float currentTemp, float setpoint, int gasValue);
 
-    // --- Predictive Control Variables ---
-    /** @brief Timestamp (in ms) of the last derivative calculation. */
-    unsigned long _lastUpdateTime;
-    /** @brief Temperature recorded at the last update, used to calculate the derivative. */
-    float _lastTemperature;
-    /** @brief The target temperature set by the user, used in predictive control logic. */
+    // --- Member Variables ---
     float _setpoint;
-    /** @brief The calculated rate of temperature change (degrees C per second). */
-    float _temperatureDerivative;
-    /** @brief The last gas sensor reading, used for emergency checks. */
     int _gasValue;
-    /** @brief Timestamp (in ms) marking the start of a heating pulse. Is 0 if no pulse is active. */
-    unsigned long _heatingPulseStartTime;
-    // --- previous Display State Variables ---
-    float _previousTemperaturePrinted, _previousSetpointPrinted;
-    int _previousGasValuePrinted;
-    String _previousStatePrinted;
 
+    // Predictive Control & Timing
+    unsigned long _lastUpdateTime;
+    float _lastTemperature;
+    float _temperatureDerivative;
+    unsigned long _heatingPulseStartTime;
+
+    // Siren Management
+    bool _sirenShouldBeActive;
+
+    bool _hwEmergencyMessageDisplayed; // Flag to prevent LCD flickering
+
+    // Previous Display State (for optimization)
+    float _previousTemperaturePrinted = 0.0;
+    float _previousSetpointPrinted = 0.0;
+    int _previousGasValuePrinted = 0;
+    String _previousStatePrinted = "";
 };
