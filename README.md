@@ -77,7 +77,7 @@ The responsibilities are cleanly separated into four main classes: `SensorManage
 You can run and interact with a live simulation of the project directly on Tinkercad. Click the link below to see the Bio-Logic Controller in action!
 
 <div align="center">
-  <a href="https://www.tinkercad.com/things/iKqZgCNgBgO-bio-logic-controller">
-    <h2>▶️ Launch Live Simulation</h2>
-  </a>
+
+## [▶️ Launch Live Simulation](https://www.tinkercad.com/things/iKqZgCNgBgO-bio-logic-controller)
+
 </div>
